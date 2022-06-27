@@ -1,5 +1,6 @@
 import collections
 import random
+from functools import reduce
 
 
 def getScore(dice):
@@ -73,7 +74,7 @@ def testScore():
     assert getScore([1, 1, 2, 3, 4, 4])[0] == 200
     assert getScore([1, 5, 2, 3, 4, 4])[0] == 150
     assert getScore([2, 3, 4, 6, 6, 2])[0] == 0
-    assert getScore([1, 2, 3, 4, 5, 6])[1] == [0, 1, 2, 3, 4, 5]
+    assert list(getScore([1, 2, 3, 4, 5, 6])[1]) == [0, 1, 2, 3, 4, 5]
     assert getScore([1, 1, 2, 3, 4, 5])[1] == [0, 1, 5]
     assert getScore([1, 1, 1, 2, 5, 6])[1] == [0, 1, 2, 4]
     print("Scoring test passed!")
@@ -103,7 +104,7 @@ def getFarklePercentages(numRolls):
     print("")
 
 
-getFarklePercentages(10000)
+getFarklePercentages(100000)
 
 
 def summation(vals):
@@ -135,7 +136,7 @@ def getExpectedValues(numRolls):
     print("")
 
 
-getExpectedValues(10000)
+getExpectedValues(100000)
 
 
 def simulateStrategy(func, numSims):
@@ -146,7 +147,7 @@ def simulateStrategy(func, numSims):
     The function needs to return only the  number of plays that it took to get
     to 10,000 points'''
     counts = []
-    for i in range(numSims):
+    for _ in range(numSims):
         counts.append(func())
     avg = average(counts)
     std = stdDev(counts)
@@ -177,13 +178,19 @@ def keepGreaterThanX(X):
     return numTurns
 
 
-def strategy1():
+def strategy1(verbose=False):
     '''A slightly better strategy, maybe the best?'''
+    takeScoreLimit = {1: 50,
+                      2: 50,
+                      3: 100,
+                      4: 150,
+                      5: 250,
+                      6: 350}
     score, currentTurnScore, numDice, numTurns = 0, 0, 6, 0
     while score < 10000:
         dice = rollDice(numDice)
         currentRollScore, scoringIdx = getScore(dice)
-        takeScoreLimit = 13.55*numDice**2-34.19*numDice+54.1
+        #takeScoreLimit = 13.55*numDice**2-34.19*numDice+54.1
         if currentRollScore == 0:
             numDice, currentTurnScore = 6, 0
             numTurns += 1
@@ -192,7 +199,7 @@ def strategy1():
             currentTurnScore += currentRollScore
             numDice = 6
             continue
-        if currentRollScore+currentTurnScore > takeScoreLimit:
+        if currentRollScore+currentTurnScore >= takeScoreLimit[numDice]:
             score += currentTurnScore+currentRollScore
             numDice, currentTurnScore = 6, 0
             numTurns += 1
@@ -210,6 +217,20 @@ def strategy1():
                 numDice -= len(scoringIdx)
     return numTurns
 
+def printStrat1():
+    print('Dice | Score Limit')
+    takeScoreLimit = {1: 50,
+                      2: 50,
+                      3: 100,
+                      4: 150,
+                      5: 250,
+                      6: 350}
+    for numDice in range(1, 7):
+        #takeScoreLimit = 13.55*numDice**2-34.19*numDice+54.1
+        print(f'{numDice}    | {round(takeScoreLimit[numDice])}')
+
 
 simulateStrategy(lambda: keepGreaterThanX(220), 10000)
 simulateStrategy(strategy1, 10000)
+print('')
+printStrat1()
