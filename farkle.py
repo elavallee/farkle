@@ -217,6 +217,45 @@ def strategy1(verbose=False):
                 numDice -= len(scoringIdx)
     return numTurns
 
+def strategy2(verbose=False):
+    '''A slightly worse strategy.'''
+    takeScoreLimit = {1: 50,
+                      2: 50,
+                      3: 100,
+                      4: 150,
+                      5: 250,
+                      6: 350}
+    score, currentTurnScore, numDice, numTurns = 0, 0, 6, 0
+    while score < 10000:
+        dice = rollDice(numDice)
+        currentRollScore, scoringIdx = getScore(dice)
+        #takeScoreLimit = 13.55*numDice**2-34.19*numDice+54.1
+        if currentRollScore == 0:
+            numDice, currentTurnScore = 6, 0
+            numTurns += 1
+            continue
+        if len(scoringIdx) == numDice:
+            currentTurnScore += currentRollScore
+            numDice = 6
+            continue
+        if currentTurnScore >= takeScoreLimit[numDice]:
+            score += currentTurnScore+currentRollScore
+            numDice, currentTurnScore = 6, 0
+            numTurns += 1
+        else:
+            numOnes = dice.count(1)
+            numFives = dice.count(5)
+            if numOnes > 0:
+                currentTurnScore += 100
+                numDice -= 1
+            elif numFives > 0 and len(scoringIdx) < 3:
+                currentTurnScore += 50
+                numDice -= 1
+            else:
+                currentTurnScore += currentRollScore
+                numDice -= len(scoringIdx)
+    return numTurns
+
 def printStrat1():
     print('Dice | Score Limit')
     takeScoreLimit = {1: 50,
